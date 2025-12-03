@@ -1,4 +1,4 @@
-package com.example.appSindempart_Grupo14
+package com.example.appsindempart_grupo14
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

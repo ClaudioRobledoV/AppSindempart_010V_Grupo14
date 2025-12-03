@@ -1,7 +1,11 @@
 package com.example.appsindempart_grupo14.model
 
-data class Reserva(
-    val id: String,
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "reservas")
+data class ReservaEntity(
+    @PrimaryKey val id: String,
     val emailUsuario: String,
     val mascota: String,
     val mascotaNombre: String,
@@ -12,5 +16,6 @@ data class Reserva(
     val tipoAtencion: String,
     val fecha: String,
     val hora: String,
-    val estado: String = "Próxima"
+    val estado: String
 )
+

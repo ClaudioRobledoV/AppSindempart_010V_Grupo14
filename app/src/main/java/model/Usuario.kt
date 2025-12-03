@@ -5,5 +5,6 @@ data class Usuario(
     val email: String,
     val telefono: String?,
     val hashedPassword: String,
+    val rol: String = "cliente",
     val mascotas: List<Mascota>
 )

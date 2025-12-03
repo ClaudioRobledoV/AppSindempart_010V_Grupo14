@@ -6,38 +6,31 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.appsindempart_grupo14.repository.AuthRepository
+import com.example.appsindempart_grupo14.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
-    authRepo: AuthRepository,
+    viewModel: LoginViewModel,
     onVolver: () -> Unit = {},
     onSuccess: (String) -> Unit
 ) {
-    val scope = rememberCoroutineScope()
-    var email by remember { mutableStateOf("") }
-    var pass by remember { mutableStateOf("") }
-    var cargando by remember { mutableStateOf(false) }
+    val ui by viewModel.ui.collectAsState()
     val snack = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+
+    LaunchedEffect(ui.exito) {
+        if (ui.exito) {
+            onSuccess(ui.email)
+        }
+    }
 
     Scaffold(snackbarHost = { SnackbarHost(snack) }) { pv ->
         Column(
@@ -47,37 +40,60 @@ fun LoginScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+
             TextButton(onClick = onVolver) { Text("← Volver") }
+
             Text("Ingresar", style = MaterialTheme.typography.titleLarge)
 
+            // EMAIL
             OutlinedTextField(
-                value = email, onValueChange = { email = it },
-                label = { Text("Correo") }, singleLine = true,
+                value = ui.email,
+                onValueChange = viewModel::onChangeEmail,
+                label = { Text("Correo") },
+                isError = ui.errorEmail != null,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email, imeAction = ImeAction.Next
-                ), modifier = Modifier.fillMaxWidth()
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                ),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
+            ui.errorEmail?.let {
+                Text(it, color = MaterialTheme.colorScheme.error)
+            }
+
+            // PASSWORD
             OutlinedTextField(
-                value = pass, onValueChange = { pass = it },
-                label = { Text("Contraseña") }, singleLine = true,
+                value = ui.password,
+                onValueChange = viewModel::onChangePassword,
+                label = { Text("Contraseña") },
+                isError = ui.errorPassword != null,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password, imeAction = ImeAction.Done
-                ), modifier = Modifier.fillMaxWidth()
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                ),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
+            ui.errorPassword?.let {
+                Text(it, color = MaterialTheme.colorScheme.error)
+            }
+
 
             Button(
                 onClick = {
-                    cargando = true
-                    scope.launch {
-                        val res = authRepo.login(email.trim(), pass)
-                        cargando = false
-                        if (res.isSuccess) onSuccess(res.getOrNull()!!.email)
-                        else snack.showSnackbar(res.exceptionOrNull()?.message ?: "Error al ingresar")
-                    }
+                    scope.launch { viewModel.login() }
                 },
-                enabled = !cargando,
+                enabled = !ui.cargando,
                 modifier = Modifier.fillMaxWidth()
-            ) { Text(if (cargando) "Ingresando…" else "Ingresar") }
+            ) {
+                Text(if (ui.cargando) "Ingresando…" else "Ingresar")
+            }
+            ui.errorGeneral?.let {
+                LaunchedEffect(it) {
+                    snack.showSnackbar(it)
+                }
+            }
         }
     }
 }

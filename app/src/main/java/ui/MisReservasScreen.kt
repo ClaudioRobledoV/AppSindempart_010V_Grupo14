@@ -17,6 +17,7 @@ fun MisReservasScreen(
     paddingValues: PaddingValues = PaddingValues(0.dp),
     onNuevaReserva: () -> Unit = {},
     onVolver: () -> Unit = {},
+    onCerrarSesion: () -> Unit = {},
     emailUsuario: String,
     reservaRepo: ReservaRepository
 ) {
@@ -26,7 +27,6 @@ fun MisReservasScreen(
     var cargando by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    // ---- Estados para editar ----
     var showEditDialog by remember { mutableStateOf(false) }
     var editingId by remember { mutableStateOf<String?>(null) }
     var editFecha by remember { mutableStateOf("") }
@@ -109,14 +109,28 @@ fun MisReservasScreen(
 
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+
                 TextButton(onClick = onVolver) { Text("← Volver") }
+
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { cargar() }, enabled = !cargando) { Text("Actualizar") }
-                    Button(onClick = onNuevaReserva) { Text("Nueva reserva") }
+
+                    Button(onClick = { cargar() }, enabled = !cargando) {
+                        Text("Actualizar")
+                    }
+
+                    Button(onClick = onNuevaReserva) {
+                        Text("Nueva reserva")
+                    }
+
+                    Button(
+                        onClick = onCerrarSesion,
+                        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.errorContainer)
+                    ) {
+                        Text("Cerrar sesión")
+                    }
                 }
             }
         }
-
 
         when {
             cargando -> {
@@ -127,14 +141,15 @@ fun MisReservasScreen(
                     }
                 }
             }
+
             error != null -> {
                 item { Text(error!!, color = MaterialTheme.colorScheme.error) }
             }
+
             reservas.isEmpty() -> {
                 item { Text("Aún no tienes reservas.") }
             }
         }
-
 
         items(reservas, key = { it.id }) { r ->
             ElevatedCard(Modifier.fillMaxWidth()) {
@@ -148,6 +163,7 @@ fun MisReservasScreen(
                     Text("Estado: ${r.estado}")
 
                     Spacer(Modifier.height(8.dp))
+
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 
                         Button(
@@ -159,7 +175,6 @@ fun MisReservasScreen(
                             },
                             enabled = r.estado == "Próxima"
                         ) { Text("Modificar") }
-
 
                         Button(
                             onClick = {

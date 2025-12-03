@@ -8,15 +8,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
-import com.example.appsindempart_grupo14.repository.AuthRepository
 import kotlinx.coroutines.launch
+import com.example.appsindempart_grupo14.repository.RoomAuthRepository
 
 @Composable
 fun UserProfileScreen(
-    authRepo: AuthRepository,
+    authRepo: RoomAuthRepository,
     emailUsuario: String,
     onVolver: () -> Unit = {},
-    onEliminado: () -> Unit = {}
+    onEliminado: () -> Unit = {},
+    onCerrarSesion: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     val snack = remember { SnackbarHostState() }
@@ -26,7 +27,7 @@ fun UserProfileScreen(
     var loaded by remember { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
 
-    // Cargar datos del usuario
+
     LaunchedEffect(emailUsuario) {
         val u = authRepo.getUsuario(emailUsuario)
         if (u != null) {
@@ -51,17 +52,37 @@ fun UserProfileScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TextButton(onClick = onVolver) { Text("← Volver") }
+
+
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(onClick = onVolver) { Text("← Volver") }
+
+                Button(
+                    onClick = onCerrarSesion,     // ⭐ CORRECTO
+                    colors = ButtonDefaults.buttonColors(
+                        MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text("Cerrar sesión")
+                }
+            }
+
             Text("Mi perfil", style = MaterialTheme.typography.titleLarge)
 
             OutlinedTextField(
-                value = nombre, onValueChange = { nombre = it },
+                value = nombre,
+                onValueChange = { nombre = it },
                 label = { Text("Nombre completo") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
-                value = telefono, onValueChange = { telefono = it },
+                value = telefono,
+                onValueChange = { telefono = it },
                 label = { Text("Teléfono (opcional)") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -90,7 +111,9 @@ fun UserProfileScreen(
                 },
                 enabled = !saving,
                 modifier = Modifier.fillMaxWidth()
-            ) { Text(if (saving) "Guardando…" else "Guardar cambios") }
+            ) {
+                Text(if (saving) "Guardando…" else "Guardar cambios")
+            }
 
             OutlinedButton(
                 onClick = {
@@ -100,9 +123,10 @@ fun UserProfileScreen(
                         else snack.showSnackbar("No se pudo eliminar")
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors()
-            ) { Text("Eliminar cuenta", color = MaterialTheme.colorScheme.error) }
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Eliminar cuenta", color = MaterialTheme.colorScheme.error)
+            }
         }
     }
 }
